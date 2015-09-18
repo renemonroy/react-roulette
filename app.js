@@ -38,22 +38,23 @@ var MegaFanRoulette = React.createClass({
     this.setState({ rouletteItems : rouletteData });
   },
 
-  onWheelStop : function(positions) {
-    var list = positions.map( function(pos, i) {
-      var divider = pos / 360;
-      return { index : i, pos : Math.abs(Math.round(divider) - divider) };
-    });
-    var { rouletteItems } = this.state,
-      index = 0,
-      selected = list[0].pos,
-      listSize = list.length;
+  getIndexOfSelected : function(list) {
+    var selected = list[0].pos, listSize = list.length, index = 0;
     for (var i=1; i<listSize; i++) {
       if ( list[i].pos < selected ) {
         selected = list[i].pos;
         index = i;
       }
     }
-    console.log( '>>> Selected Item:', rouletteItems[index]);
+    return index;
+  },
+
+  onWheelStop : function(positions) {
+    var index = this.getIndexOfSelected(positions.map( function(pos, i) {
+      var divider = pos / 360;
+      return { index : i, pos : Math.abs(Math.round(divider) - divider) };
+    }));
+    console.log( '>>> Selected Item:', this.state.rouletteItems[index]);
   },
 
   renderItem : function(index) {
@@ -66,7 +67,7 @@ var MegaFanRoulette = React.createClass({
     );
   },
 
-  renderWheel : function() {
+  renderWheelView : function() {
     var { rouletteItems } = this.state,
       itemsSize = rouletteItems.length;
    return itemsSize > 0 ?
@@ -77,11 +78,11 @@ var MegaFanRoulette = React.createClass({
   },
 
   render : function() {
-    var wheel = this.renderWheel();
+    var view = this.renderWheelView();
     return (
       <div className="app">
         <h3>Roulette Wheel</h3>
-        {wheel}
+        {view}
       </div>
     );
   }
