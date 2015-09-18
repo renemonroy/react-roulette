@@ -38,6 +38,24 @@ var MegaFanRoulette = React.createClass({
     this.setState({ rouletteItems : rouletteData });
   },
 
+  onWheelStop : function(positions) {
+    var list = positions.map( function(pos, i) {
+      var divider = pos / 360;
+      return { index : i, pos : Math.abs(Math.round(divider) - divider) };
+    });
+    var { rouletteItems } = this.state,
+      index = 0,
+      selected = list[0].pos,
+      listSize = list.length;
+    for (var i=1; i<listSize; i++) {
+      if ( list[i].pos < selected ) {
+        selected = list[i].pos;
+        index = i;
+      }
+    }
+    console.log( '>>> Selected Item:', rouletteItems[index]);
+  },
+
   renderItem : function(index) {
     var item = this.state.rouletteItems[index],
       itemName = item.name;
@@ -52,7 +70,10 @@ var MegaFanRoulette = React.createClass({
     var { rouletteItems } = this.state,
       itemsSize = rouletteItems.length;
    return itemsSize > 0 ?
-    <UIWheel item={this.renderItem} itemsLength={itemsSize} /> : null;
+    <UIWheel
+      item={this.renderItem}
+      itemsLength={itemsSize}
+      onStop={this.onWheelStop} /> : null;
   },
 
   render : function() {
@@ -77,19 +98,17 @@ var UIWheel = React.createClass({
   displayName : 'UIWheel',
 
   componentDidMount : function() {
+    this.currentY = 0;
     this.configureEvents();
   },
 
   configureEvents : function() {
     var { uiWheel } = this.refs,
       wheelEl = uiWheel.getDOMNode();
-
-    this.currentY = 0;
-
     if ( typeof window.ontouchstart !== 'undefined' ) {
       wheelEl.addEventListener('touchstart', this.onTrap);
       wheelEl.addEventListener('touchmove', this.onDrag);
-      wheelEl.addEventListener('touchEnd', this.onRelease);
+      wheelEl.addEventListener('touchend', this.onRelease);
     }
     wheelEl.addEventListener('mousedown', this.onTrap);
     wheelEl.addEventListener('mousemove', this.onDrag);
@@ -119,16 +138,25 @@ var UIWheel = React.createClass({
   onRelease : function(e) {
     this.pressed = false;
     this.preventDefaults(e);
+    this.stopRotation();
   },
 
   rotate : function(posY) {
     var { itemsLength } = this.props,
       angle = null,
       refs = this.refs;
+    this.angles = [];
     for ( var i=0; i<itemsLength; i++ ) {
       angle = -(posY/2) + (360/itemsLength)*i;
-      refs['wi' + i].getDOMNode().style.transform = this.getItem3DStyles(angle).transform;
+      refs['wi' + i].getDOMNode().style.transform =
+        this.getItem3DStyles(angle).transform;
+      this.angles.push(angle);
     }
+  },
+
+  stopRotation : function() {
+    var { onStop } = this.props;
+    if ( onStop ) onStop(this.angles);
   },
 
   preventDefaults : function(e) {
