@@ -31,30 +31,43 @@ var MegaFanRoulette = React.createClass({
   displayName : 'MegaFanRoulette',
 
   getInitialState : function() {
-    return { rouletteItems : [] };
+    return {
+      rouletteItems : [],
+      viewName : 'wheel',
+      selectedItem : null
+    };
   },
 
   componentDidMount : function() {
-    this.setState({ rouletteItems : rouletteData });
+    this.setState({
+      rouletteItems : rouletteData,
+      viewName : 'wheel'
+    });
   },
 
-  getIndexOfSelected : function(list) {
-    var selected = list[0].pos, listSize = list.length, index = 0;
+  getSelectedItem : function(positions) {
+    var list = positions.map( function(pos, i) {
+      var divider = pos / 360;
+      return { index : i, pos : Math.abs(Math.round(divider) - divider) };
+    });
+    var selected = list[0].pos,
+      listSize = list.length,
+      index = 0;
     for (var i=1; i<listSize; i++) {
       if ( list[i].pos < selected ) {
         selected = list[i].pos;
         index = i;
       }
     }
-    return index;
+    return this.state.rouletteItems[index];
   },
 
   onWheelStop : function(positions) {
-    var index = this.getIndexOfSelected(positions.map( function(pos, i) {
-      var divider = pos / 360;
-      return { index : i, pos : Math.abs(Math.round(divider) - divider) };
-    }));
-    console.log( '>>> Selected Item:', this.state.rouletteItems[index]);
+    var selectedItem = this.getSelectedItem(positions);
+    this.setState({
+      viewName : selectedItem.itemType,
+      selectedItem : selectedItem
+    });
   },
 
   renderItem : function(index) {
@@ -67,22 +80,79 @@ var MegaFanRoulette = React.createClass({
     );
   },
 
-  renderWheelView : function() {
-    var { rouletteItems } = this.state,
-      itemsSize = rouletteItems.length;
-   return itemsSize > 0 ?
-    <UIWheel
-      item={this.renderItem}
-      itemsLength={itemsSize}
-      onStop={this.onWheelStop} /> : null;
+  renderView : function(viewName) {
+    var { rouletteItems, selectedItem } = this.state;
+    switch ( viewName ) {
+      case 'wheel' :
+        return rouletteItems.length > 0 ?
+           <UIWheel
+             item={this.renderItem}
+             itemsLength={rouletteItems.length}
+             onStop={this.onWheelStop}
+           /> : null;
+        break;
+      case 'fan' :
+        return <FanView item={selectedItem} />;
+        break;
+      case 'nada' :
+        return <NadaView />;
+        break;
+      case 'again' :
+        return <AgainView item={selectedItem} />;
+        break;
+    }
   },
 
   render : function() {
-    var view = this.renderWheelView();
+    var { viewName } = this.state;
     return (
       <div className="app">
         <h3>Roulette Wheel</h3>
-        {view}
+        {this.renderView(viewName)}
+      </div>
+    );
+  }
+
+});
+
+
+/* FAN VIEW ----------------------------------------------------------------- */
+var FanView = React.createClass({
+  render : function() {
+    return (
+      <div className="fan-view">
+        <p>Getting Jumpy</p>
+      </div>
+    );
+  }
+});
+
+
+/* NADA VIEW ---------------------------------------------------------------- */
+var NadaView = React.createClass({
+  render : function() {
+    return (
+      <div className="nada-view">
+        <p>Sorry</p>
+      </div>
+    );
+  }
+});
+
+
+/* AGAIN VIEW --------------------------------------------------------------- */
+var AgainView = React.createClass({
+
+  spinAgain : function(e) {
+    e.preventDefault();
+    console.log('One more chance!');
+  },
+
+  render : function() {
+    return (
+      <div className="again-view">
+        <p>Spin Again</p>
+        <button type="button" onClick={this.spinAgain}>Sping Again</button>
       </div>
     );
   }
