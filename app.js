@@ -64,8 +64,9 @@ var MegaFanRoulette = React.createClass({
 
   onWheelStop : function(positions) {
     var selectedItem = this.getSelectedItem(positions);
+    console.log('>>> Selected Item', selectedItem);
     this.setState({
-      viewName : selectedItem.itemType,
+      // viewName : selectedItem.itemType,
       selectedItem : selectedItem
     });
   },
@@ -145,7 +146,6 @@ var AgainView = React.createClass({
 
   spinAgain : function(e) {
     e.preventDefault();
-    console.log('One more chance!');
   },
 
   render : function() {
@@ -168,8 +168,18 @@ var UIWheel = React.createClass({
 
   displayName : 'UIWheel',
 
+  getDefaultProps : function() {
+    return { friction : 2, mass : 1000, touchRatio : 1 };
+  },
+
   componentDidMount : function() {
-    this.currentY = 0;
+    this.startPoint = 0;
+    this.lastPoint = 0;
+    this.currentCoord = 0;
+    this.lastCoord = 0;
+    this.velocity = 0;
+    this.lastTime = Date.now();
+    this.inertiaTime = this.lastTime;
     this.configureEvents();
   },
 
@@ -177,68 +187,125 @@ var UIWheel = React.createClass({
     var { uiWheel } = this.refs,
       wheelEl = uiWheel.getDOMNode();
     if ( typeof window.ontouchstart !== 'undefined' ) {
-      wheelEl.addEventListener('touchstart', this.onTrap);
+      wheelEl.addEventListener('touchstart', this.onTap);
       wheelEl.addEventListener('touchmove', this.onDrag);
       wheelEl.addEventListener('touchend', this.onRelease);
     }
-    wheelEl.addEventListener('mousedown', this.onTrap);
+    wheelEl.addEventListener('mousedown', this.onTap);
     wheelEl.addEventListener('mousemove', this.onDrag);
     wheelEl.addEventListener('mouseup', this.onRelease);
   },
 
-  onTrap : function(e) {
-    this.pressed = true;
-    this.initialY = this.getPosY(e);
+  removeEvents : function() {
+    var { uiWheel } = this.refs,
+      wheelEl = uiWheel.getDOMNode();
+    if ( typeof window.ontouchstart !== 'undefined' ) {
+      wheelEl.removeEventListener('touchstart', this.onTap);
+      wheelEl.removeEventListener('touchmove', this.onDrag);
+      wheelEl.removeEventListener('touchend', this.onRelease);
+    }
+    wheelEl.removeEventListener('mousedown', this.onTap);
+    wheelEl.removeEventListener('mousemove', this.onDrag);
+    wheelEl.removeEventListener('mouseup', this.onRelease);
+  },
+
+  getPosY : function(e) {
+    return (e.targetTouches && (e.targetTouches.length >= 1)) ?
+      e.targetTouches[0].clientY : e.clientY;
+  },
+
+  calculateVelocity : function(e) {
+    var { touchRatio } = this.props,
+      time = Date.now(),
+      deltaTime = time - this.lastTime,
+      vel = this.velocity + ((this.lastCoord / deltaTime) / touchRatio );
+    return !isNaN(vel) ? vel : 0;
+  },
+
+  onTap : function(e) {
+    var y = this.getPosY(e);
+    this.autoRotate();
+    this.lastCoord = 0;
+    this.startPoint = y;
+    this.velocity = 0;
+    this.rotate(this.currentCoord);
     this.preventDefaults(e);
   },
 
   onDrag : function(e) {
-    var y = null, deltaY = null;
-    if ( this.pressed ) {
-      y = this.getPosY(e);
-      deltaY = y - this.initialY;
-      if ( deltaY > 2 || deltaY < -2 ) {
-        this.initialY = y;
-        this.currentY += deltaY;
-        this.rotate(this.currentY);
-      }
+    this.lastTime = Date.now();
+    var y = this.getPosY(e),
+      deltaY = y - this.startPoint;
+    if ( deltaY > 2 || deltaY < -2 ) {
+      this.lastPoint = this.startPoint;
+      this.startPoint = y;
+      this.lastCoord = deltaY;
+      this.currentCoord += deltaY;
+      this.rotate(this.currentCoord);
     }
     this.preventDefaults(e);
   },
 
   onRelease : function(e) {
-    this.pressed = false;
+    this.velocity = this.calculateVelocity(e);
+    if ( this.velocity < 10 || this.velocity > -10 ) {
+      this.rotate(this.currentCoord);
+      this.inertiaTime = null;
+      this.removeEvents();
+    }
     this.preventDefaults(e);
-    this.stopRotation();
   },
 
-  rotate : function(posY) {
+  rotate : function(coordY) {
     var { itemsLength } = this.props,
-      angle = null,
-      refs = this.refs;
+      refs = this.refs,
+      angle;
     this.angles = [];
     for ( var i=0; i<itemsLength; i++ ) {
-      angle = -(posY/2) + (360/itemsLength)*i;
+      angle = -(coordY/2) + (360/itemsLength) * i;
       refs['wi' + i].getDOMNode().style.transform =
         this.getItem3DStyles(angle).transform;
       this.angles.push(angle);
     }
   },
 
-  stopRotation : function() {
-    var { onStop } = this.props;
-    if ( onStop ) onStop(this.angles);
+  autoRotate : function() {
+    var { friction, mass, onStop } = this.props;
+
+    this.velocity = !isNaN(this.velocity) ? this.velocity : 0;
+
+    if ( !(this.inertiaTime) ) {
+      this.inertiaTime = Date.now();
+    }
+
+    else if ( this.velocity != 0 ) {
+      var time = Date.now(),
+        force = this.velocity * friction,
+        acceleration = force / mass,
+        deltaTime = time - this.inertiaTime,
+        vel = this.velocity - (acceleration * deltaTime);
+
+      vel = !isNaN(vel) ? vel : 0;
+      this.velocity = vel;
+
+      var delta = vel * deltaTime;
+      this.lastCoord = this.currentCoord;
+      this.currentCoord += delta;
+      this.inertiaTime = time;
+      this.rotate(this.currentCoord);
+    }
+
+    this.autoRotation = requestAnimationFrame(this.autoRotate);
+    if ( Math.abs(0 - delta) < .01 ) {
+      cancelAnimationFrame(this.autoRotation);
+      if ( onStop ) onStop(this.angles);
+    }
   },
 
   preventDefaults : function(e) {
     e.preventDefault();
     e.stopPropagation();
     return false;
-  },
-
-  getPosY : function(e) {
-    return (e.targetTouches && (e.targetTouches.length >= 1)) ?
-      e.targetTouches[0].clientY : e.clientY;
   },
 
   getItem3DStyles : function(angle) {
