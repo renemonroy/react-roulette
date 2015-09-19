@@ -1,6 +1,6 @@
 $wheel-height : 8rem;
 
-.ui-wheel-wrapper {
+.wheel-view {
   box-sizing : border-box;
   position : absolute;
   left : 50%;
@@ -59,6 +59,26 @@ $wheel-height : 8rem;
   span {
     font-size : 12px;
     line-height : 16px;
+  }
+}
+
+/* Fade Transitions handled by a parent element ----------------------------- */
+
+.fadeviews {
+  -webkit-backface-visibility: hidden;
+  &.fadeviews-enter {
+    opacity : 0.01;
+    &.fadeviews-enter-active {
+      opacity : 1;
+      transition : opacity .1s ease-in;
+    }
+  }
+  &.fadeviews-leave {
+    opacity : 1;
+    transition : opacity .1s ease-in;
+    &.fadeviews-leave-active {
+      opacity : 0.01;
+    }
   }
 }
 

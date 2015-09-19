@@ -1,6 +1,8 @@
-var React = require('react'),
+var React = require('react/addons'),
   $ = require('jquery'),
   AppStyles = require('./app.scss');
+
+var UITransition = React.addons.CSSTransitionGroup;
 
 var rouletteData = [
   { name : 'Swipe to Spin', itemType : 'again' },
@@ -33,7 +35,7 @@ var MegaFanRoulette = React.createClass({
   getInitialState : function() {
     return {
       rouletteItems : [],
-      viewName : 'wheel',
+      viewName : null,
       selectedItem : null
     };
   },
@@ -66,7 +68,7 @@ var MegaFanRoulette = React.createClass({
     var selectedItem = this.getSelectedItem(positions);
     console.log('>>> Selected Item', selectedItem);
     this.setState({
-      // viewName : selectedItem.itemType,
+      viewName : selectedItem.itemType,
       selectedItem : selectedItem
     });
   },
@@ -86,21 +88,24 @@ var MegaFanRoulette = React.createClass({
     switch ( viewName ) {
       case 'wheel' :
         return rouletteItems.length > 0 ?
-           <UIWheel
+           <WheelView
              item={this.renderItem}
              itemsLength={rouletteItems.length}
              onStop={this.onWheelStop}
+             key="wheelview"
            /> : null;
         break;
       case 'fan' :
-        return <FanView item={selectedItem} />;
+        return <FanView item={selectedItem} key="fanview" />;
         break;
       case 'nada' :
-        return <NadaView />;
+        return <NadaView key="nadaview" />;
         break;
       case 'again' :
-        return <AgainView item={selectedItem} />;
+        return <AgainView item={selectedItem} key="againview" />;
         break;
+      default :
+        return null;
     }
   },
 
@@ -109,7 +114,9 @@ var MegaFanRoulette = React.createClass({
     return (
       <div className="app">
         <h3>Roulette Wheel</h3>
-        {this.renderView(viewName)}
+        <UITransition transitionName="fadeviews" component="div">
+          {this.renderView(viewName)}
+        </UITransition>
       </div>
     );
   }
@@ -121,7 +128,7 @@ var MegaFanRoulette = React.createClass({
 var FanView = React.createClass({
   render : function() {
     return (
-      <div className="fan-view">
+      <div className="fan-view fadeviews">
         <p>Getting Jumpy</p>
       </div>
     );
@@ -133,7 +140,7 @@ var FanView = React.createClass({
 var NadaView = React.createClass({
   render : function() {
     return (
-      <div className="nada-view">
+      <div className="nada-view fadeviews">
         <p>Sorry</p>
       </div>
     );
@@ -150,7 +157,7 @@ var AgainView = React.createClass({
 
   render : function() {
     return (
-      <div className="again-view">
+      <div className="again-view fadeviews">
         <p>Spin Again</p>
         <button type="button" onClick={this.spinAgain}>Sping Again</button>
       </div>
@@ -160,11 +167,11 @@ var AgainView = React.createClass({
 });
 
 
-/* UI WHEEL COMPONENT ------------------------------------------------------- */
+/* WHEEL VIEW --------------------------------------------------------------- */
 // - Does not render a list randomly, that's on charge of owner.
 // - Creates a wheel depending on the number of fans size inside.
 
-var UIWheel = React.createClass({
+var WheelView = React.createClass({
 
   displayName : 'UIWheel',
 
@@ -341,7 +348,7 @@ var UIWheel = React.createClass({
   render : function() {
     var items = this.getItems();
     return (
-      <div className="ui-wheel-wrapper">
+      <div className="wheel-view fadeviews">
         <div className="ui-wheel" ref="uiWheel">
           {items}
         </div>
