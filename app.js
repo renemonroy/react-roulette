@@ -64,13 +64,17 @@ var MegaFanRoulette = React.createClass({
     return this.state.rouletteItems[index];
   },
 
-  onWheelStop : function(positions) {
+  onWheelStops : function(positions) {
     var selectedItem = this.getSelectedItem(positions);
     console.log('>>> Selected Item', selectedItem);
     this.setState({
       viewName : selectedItem.itemType,
       selectedItem : selectedItem
     });
+  },
+
+  onTryingAgain : function() {
+    this.setState({ viewName : 'wheel' });
   },
 
   renderItem : function(index) {
@@ -91,18 +95,29 @@ var MegaFanRoulette = React.createClass({
            <WheelView
              item={this.renderItem}
              itemsLength={rouletteItems.length}
-             onStop={this.onWheelStop}
+             onStop={this.onWheelStops}
              key="wheelview"
            /> : null;
         break;
       case 'fan' :
-        return <FanView item={selectedItem} key="fanview" />;
+        return (
+          <FanView
+            item={selectedItem}
+            key="fanview"
+          />
+        );
         break;
       case 'nada' :
         return <NadaView key="nadaview" />;
         break;
       case 'again' :
-        return <AgainView item={selectedItem} key="againview" />;
+        return (
+          <AgainView
+            item={selectedItem}
+            onTryAgain={this.onTryingAgain}
+            key="againview"
+          />
+        );
         break;
       default :
         return null;
@@ -112,7 +127,7 @@ var MegaFanRoulette = React.createClass({
   render : function() {
     var { viewName } = this.state;
     return (
-      <div className="app">
+      <div className="superfan-roulette">
         <h3>Roulette Wheel</h3>
         <UITransition transitionName="fadeviews" component="div">
           {this.renderView(viewName)}
@@ -152,7 +167,9 @@ var NadaView = React.createClass({
 var AgainView = React.createClass({
 
   spinAgain : function(e) {
+    var { onTryAgain } = this.props;
     e.preventDefault();
+    if ( onTryAgain ) onTryAgain();
   },
 
   render : function() {
@@ -188,6 +205,11 @@ var WheelView = React.createClass({
     this.lastTime = Date.now();
     this.inertiaTime = this.lastTime;
     this.configureEvents();
+  },
+
+  componentWillUnmount : function() {
+    if ( this.autoRotation ) cancelAnimationFrame(this.autoRotation);
+    this.removeEvents();
   },
 
   configureEvents : function() {
@@ -303,7 +325,7 @@ var WheelView = React.createClass({
     }
 
     this.autoRotation = requestAnimationFrame(this.autoRotate);
-    if ( Math.abs(0 - delta) < .01 ) {
+    if ( Math.abs(0 - delta) < .02 ) {
       cancelAnimationFrame(this.autoRotation);
       if ( onStop ) onStop(this.angles);
     }

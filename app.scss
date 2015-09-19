@@ -46,19 +46,21 @@ $wheel-height : 8rem;
   }
 }
 
-.roulette-item {
-  height : 100%;
-  width : 100%;
-  box-sizing : border-box;
-  display : -webkit-box;
-  display : -webkit-flex;
-  display : flex;
-  align-items : center;
-  justify-content : center;
+.superfan-roulette {
+  .roulette-item {
+    height : 100%;
+    width : 100%;
+    box-sizing : border-box;
+    display : -webkit-box;
+    display : -webkit-flex;
+    display : flex;
+    align-items : center;
+    justify-content : center;
 
-  span {
-    font-size : 12px;
-    line-height : 16px;
+    span {
+      font-size : 12px;
+      line-height : 16px;
+    }
   }
 }
 
