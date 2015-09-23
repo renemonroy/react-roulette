@@ -50,7 +50,10 @@ var MegaFanRoulette = React.createClass({
   getSelectedItem : function(positions) {
     var list = positions.map( function(pos, i) {
       var divider = pos / 360;
-      return { index : i, pos : Math.abs(Math.round(divider) - divider) };
+      return {
+        index : i,
+        pos : Math.abs(Math.round(divider) - divider)
+      };
     });
     var selected = list[0].pos,
       listSize = list.length,
@@ -79,10 +82,29 @@ var MegaFanRoulette = React.createClass({
 
   renderItem : function(index) {
     var item = this.state.rouletteItems[index],
-      itemName = item.name;
+      itemContent = null;
+    if ( index == 0 || index == 8 ) {
+      itemContent = (
+        <div className="item-content item-again">
+          <span>{item.name}</span>
+        </div>
+      );
+    } else if ( index == 4 || index == 12) {
+      itemContent = (
+        <div className="item-content item-nada">
+          <span>Nada</span>
+        </div>
+      );
+    } else {
+      itemContent = (
+        <div className="item-content item-fan">
+          <span>{item.value}</span>
+        </div>
+      );
+    }
     return (
       <div className="roulette-item" key={'ri' + index}>
-        <span>{itemName}</span>
+        {itemContent}
       </div>
     );
   },
@@ -100,9 +122,11 @@ var MegaFanRoulette = React.createClass({
            /> : null;
         break;
       case 'fan' :
+        var fan = { jumps : selectedItem.value, username : selectedItem.name };
         return (
           <FanView
-            item={selectedItem}
+            jumps={selectedItem.value}
+            fan={fan}
             key="fanview"
           />
         );
@@ -128,7 +152,6 @@ var MegaFanRoulette = React.createClass({
     var { viewName } = this.state;
     return (
       <div className="superfan-roulette">
-        <h3>Roulette Wheel</h3>
         <UITransition transitionName="fadeviews" component="div">
           {this.renderView(viewName)}
         </UITransition>
@@ -141,30 +164,49 @@ var MegaFanRoulette = React.createClass({
 
 /* FAN VIEW ----------------------------------------------------------------- */
 var FanView = React.createClass({
+
+  displayName : 'FanView',
+
+  getDefaultProps : function() {
+    return { user : null, fan : null };
+  },
+
   render : function() {
+    var { user, fan } = this.props;
     return (
       <div className="fan-view fadeviews">
-        <p>Getting Jumpy</p>
+        <h2>Getting Jumpy</h2>
+        <p>You and {fan.username}<br/>
+          both just got a<br/>
+          <strong>+{fan.jumps} spot jump</strong>. Boom!</p>
       </div>
     );
   }
+
 });
 
 
 /* NADA VIEW ---------------------------------------------------------------- */
 var NadaView = React.createClass({
+
+  displayName : 'NadaView',
+
   render : function() {
     return (
       <div className="nada-view fadeviews">
-        <p>Sorry</p>
+        <h2>Sorry</h2>
+        <p>You didn't earn a jump.<br/>Better luck next time!</p>
       </div>
     );
   }
+
 });
 
 
 /* AGAIN VIEW --------------------------------------------------------------- */
 var AgainView = React.createClass({
+
+  displayName : 'AgainView',
 
   spinAgain : function(e) {
     var { onTryAgain } = this.props;
@@ -175,8 +217,10 @@ var AgainView = React.createClass({
   render : function() {
     return (
       <div className="again-view fadeviews">
-        <p>Spin Again</p>
-        <button type="button" onClick={this.spinAgain}>Sping Again</button>
+        <h2>Free Spin!</h2>
+        <p>You just won another chance at the wheel. Go ahead,
+        give it a spin!</p>
+        <button type="button" onClick={this.spinAgain}>Spin Again</button>
       </div>
     );
   }
@@ -185,12 +229,15 @@ var AgainView = React.createClass({
 
 
 /* WHEEL VIEW --------------------------------------------------------------- */
+// - It's only a wheel that rotates, nothing less and nothing more.
 // - Does not render a list randomly, that's on charge of owner.
 // - Creates a wheel depending on the number of fans size inside.
+// - Only accepts 16 elements for now, mainly because of CSS translations.
+// - It returns the 16 new angles of each one, owner manages its usage.
 
 var WheelView = React.createClass({
 
-  displayName : 'UIWheel',
+  displayName : 'WheelView',
 
   getDefaultProps : function() {
     return { friction : 2, mass : 1000, touchRatio : 1 };
@@ -371,8 +418,16 @@ var WheelView = React.createClass({
     var items = this.getItems();
     return (
       <div className="wheel-view fadeviews">
-        <div className="ui-wheel" ref="uiWheel">
-          {items}
+        <p>Which MegaFan's got the highest jump?</p>
+        <div className="wheel-wrapper">
+          <div className="ui-wheel" ref="uiWheel">
+            {items}
+          </div>
+          <div className="ui-wheel-refs">
+            <div className="ref-left-arrow"><div /></div>
+            <div className="ref-background"></div>
+            <div className="ref-right-arrow"><div /></div>
+          </div>
         </div>
       </div>
     );

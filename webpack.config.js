@@ -54,7 +54,8 @@ module.exports = {
     loaders : [
       { test: /\.jsx?$/, loaders: ['babel'], exclude: /node_modules/ },
       { test: /\.css$/, loader: "style!css" },
-      { test: /\.scss$/, loader: 'style!css!sass' }
+      { test: /\.scss$/, loader: 'style!css!sass' },
+      { test: /\.(png|woff|woff2|eot|ttf|svg)$/, loader: 'url-loader?limit=100000' }
     ],
     preloaders : [
       {

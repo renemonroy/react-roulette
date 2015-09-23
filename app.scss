@@ -1,15 +1,33 @@
-$wheel-height : 8rem;
+body {
+  background-color : #971418;
+}
 
-.wheel-view {
+.fadeviews {
+  height : 480px;
+  position : relative;
+  color : #FBFBFB;
+  text-align : center;
+
+  h2 {
+    text-transform : uppercase;
+  }
+
+  button {
+    border : 1px solid #fbfbfb;
+    text-transform : uppercase;
+  }
+}
+
+.wheel-wrapper {
   box-sizing : border-box;
   position : absolute;
   left : 50%;
-  top : 50%;
+  top : 60%;
   display : inline-block;
   padding : 0;
   text-align : center;
-  width : 8rem;
-  height : $wheel-height;
+  width : 5rem;
+  height : 8rem;
   cursor : -webkit-grab;
   cursor : grab;
   -webkit-user-select : none;
@@ -24,11 +42,12 @@ $wheel-height : 8rem;
     padding : 0;
     margin : 0;
     height : 100%;
-    width : 6rem;
+    width : 100%;
     -webkit-transform-style : preserve-3d;
     transform-style : preserve-3d;
     -webkit-transform-origin : 100% 25%;
     transform-origin : 100% 25%;
+    z-index : 9999;
   }
 
   .ui-wheel-item {
@@ -43,11 +62,81 @@ $wheel-height : 8rem;
     border : 1px solid #111;
     outline : 1px solid transparent;
     color : #ffffff;
+    box-shadow : 0 0 5px rgba(0,0,0,.25);
+    // box-shadow : 0 0 5px rgba(0, 0, 0, 0.25), inset 3px 0 3px #3C3C3C, inset -3px 0 3px #424242;
+  }
+
+  .ui-wheel-refs {
+    position : absolute;
+    top : calc(25% - (380px / 2));
+    left : -100%;
+    width : calc(100% * 4);
+    height : 380px;
+    box-sizing : border-box;
+    display : -webkit-box;
+    display : -webkit-flex;
+    display : flex;
+    align-items : center;
+    justify-content : space-between;
+    pointer-events : none;
+
+    &>div {
+      height : 100%;
+
+      &.ref-background {
+        background-color : #0e0000;
+        border-radius : 24px/164px;
+        width : 150px;
+        box-shadow : inset 0 0 5px rgba(0,0,0,.75);
+        background-image: linear-gradient(to right, #2B2A2A 0%, #0A0A0A 50%, #2B2A2A 100%);
+        // box-shadow : inset 0 0 5px #000000,inset 20px 0 40px #292929, inset -20px 0 40px #292929;
+        // border-left : 1px solid #A2191E;
+        // border-right : 1px solid #A2191E;
+      }
+
+      &.ref-left-arrow {
+        width : 80px;
+        margin-left : 5%;
+        position : relative;
+        z-index : 9999;
+
+        &>div {
+          background : transparent url('./images/arrow.png') center center no-repeat;
+          background-size : contain;
+          width : 100%;
+          height : 100%;
+          margin-left : 10px;
+        }
+      }
+
+      &.ref-right-arrow {
+        width : 80px;
+        margin-right : 5%;
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+        position : relative;
+        z-index : 9999;
+
+        &>div {
+          background : transparent url('./images/arrow.png') center center no-repeat;
+          background-size : contain;
+          width : 100%;
+          height : 100%;
+          margin-left : 9px;
+        }
+      }
+    }
   }
 }
 
 .superfan-roulette {
+
   .roulette-item {
+    height : 100%;
+    width : 100%;
+  }
+
+  .item-content {
     height : 100%;
     width : 100%;
     box-sizing : border-box;
@@ -57,9 +146,22 @@ $wheel-height : 8rem;
     align-items : center;
     justify-content : center;
 
+    &.item-again {
+      background-color : #f99737;
+      color : #040000;
+      text-transform: uppercase;
+      font-size : 14px;
+    }
+
+    &.item-fan {
+      background-color : #404040;
+    }
+
     span {
+      display : block;
       font-size : 12px;
-      line-height : 16px;
+      line-height : 14px;
+      padding : 5px 10px;
     }
   }
 }
