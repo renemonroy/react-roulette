@@ -2,9 +2,16 @@ body {
   background-color : #971418;
 }
 
-.fadeviews {
+.views-wrapper {
   height : 480px;
+  width : 100%;
   position : relative;
+}
+
+.fadeviews {
+  height : 100%;
+  width : 100%;
+  position : absolute;
   color : #FBFBFB;
   text-align : center;
 
@@ -22,7 +29,7 @@ body {
   box-sizing : border-box;
   position : absolute;
   left : 50%;
-  top : 60%;
+  top : 50%;
   display : inline-block;
   padding : 0;
   text-align : center;
@@ -32,8 +39,8 @@ body {
   cursor : grab;
   -webkit-user-select : none;
   user-select : none;
-  -webkit-transform : translate(-100%, -50%);
-  transform : translate(-100%, -50%);
+  -webkit-transform : translate(-100%, 0);
+  transform : translate(-100%, 0);
 
   .ui-wheel {
     box-sizing : border-box;

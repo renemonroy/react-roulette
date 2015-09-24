@@ -152,7 +152,7 @@ var MegaFanRoulette = React.createClass({
     var { viewName } = this.state;
     return (
       <div className="superfan-roulette">
-        <UITransition transitionName="fadeviews" component="div">
+        <UITransition transitionName="fadeviews" className="views-wrapper" component="div">
           {this.renderView(viewName)}
         </UITransition>
       </div>
