@@ -242,7 +242,7 @@ var WheelView = React.createClass({
   displayName : 'WheelView',
 
   getDefaultProps : function() {
-    return { friction : 2, mass : 1000, touchRatio : 1 };
+    return { friction : 2, mass : 1000, touchRatio : 1, wheelRatio : 1000 };
   },
 
   componentDidMount : function() {
@@ -272,6 +272,7 @@ var WheelView = React.createClass({
     wheelEl.addEventListener('mousedown', this.onTap);
     wheelEl.addEventListener('mousemove', this.onDrag);
     wheelEl.addEventListener('mouseup', this.onRelease);
+    wheelEl.addEventListener('mousewheel', this.onMouseWheel);
   },
 
   removeEvents : function() {
@@ -285,6 +286,7 @@ var WheelView = React.createClass({
     wheelEl.removeEventListener('mousedown', this.onTap);
     wheelEl.removeEventListener('mousemove', this.onDrag);
     wheelEl.removeEventListener('mouseup', this.onRelease);
+    wheelEl.removeEventListener('mousewheel', this.onMouseWheel);
   },
 
   getPosY : function(e) {
@@ -298,6 +300,23 @@ var WheelView = React.createClass({
       deltaTime = time - this.lastTime,
       vel = this.velocity + ((this.lastCoord / deltaTime) / touchRatio );
     return !isNaN(vel) ? vel : 0;
+  },
+
+  generateRandomNum : function() {
+    return Math.floor(Math.random() * 8) + 1;
+  },
+
+  avoidCheating : function() {
+    var deltaForce = this.lastCoord / (Date.now() - this.lastTime),
+      randomNum = this.generateRandomNum();
+    if ( deltaForce < 1 && deltaForce > 0 ) {
+      this.velocity = 1 + randomNum;
+    } else if ( deltaForce > -1 && deltaForce < 0 ) {
+      this.velocity = -1 - randomNum;
+    } else if ( deltaForce == 0 ) {
+      this.velocity = 1 + randomNum;
+    }
+    return this;
   },
 
   onTap : function(e) {
@@ -325,13 +344,23 @@ var WheelView = React.createClass({
   },
 
   onRelease : function(e) {
+    this.avoidCheating();
     this.velocity = this.calculateVelocity(e);
+
     if ( this.velocity < 10 || this.velocity > -10 ) {
       this.rotate(this.currentCoord);
       this.inertiaTime = null;
       this.removeEvents();
     }
     this.preventDefaults(e);
+  },
+
+  onMouseWheel : function(e) {
+    var deltaY = null,
+      { wheelRatio } = this.props;
+    if ( this.velocity == 0 ) this.inertiaTime = Date.now();
+    deltaY = e.deltaY || 0;
+    this.velocity -= deltaY / wheelRatio;
   },
 
   rotate : function(coordY) {
