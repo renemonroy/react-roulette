@@ -194,6 +194,7 @@ var NadaView = React.createClass({
   render : function() {
     return (
       <div className="nada-view fadeviews">
+        <div className="sorry-img" />
         <h2>Sorry</h2>
         <p>You didn't earn a jump.<br/>Better luck next time!</p>
       </div>
@@ -220,6 +221,7 @@ var AgainView = React.createClass({
         <h2>Free Spin!</h2>
         <p>You just won another chance at the wheel. Go ahead,
         give it a spin!</p>
+        <div className="free-spin-img" />
         <button type="button" onClick={this.spinAgain}>Spin Again</button>
       </div>
     );
